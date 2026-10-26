@@ -1,0 +1,6 @@
+flask
+requests
+reportlab
+pyttsx3
+moviepy
+pillow

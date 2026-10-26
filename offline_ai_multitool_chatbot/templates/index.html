@@ -1,0 +1,158 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Offline AI Multi Tool Chatbot</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: #e5e7eb;
+}
+.container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 30px;
+}
+h1 {
+    margin-bottom: 8px;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+    margin-top: 24px;
+}
+.card {
+    background: #111827;
+    border: 1px solid #334155;
+    border-radius: 18px;
+    padding: 20px;
+}
+textarea, input {
+    width: 100%;
+    background: #020617;
+    color: #e5e7eb;
+    border: 1px solid #475569;
+    border-radius: 12px;
+    padding: 12px;
+    box-sizing: border-box;
+    margin: 8px 0;
+}
+button {
+    background: #22c55e;
+    color: #052e16;
+    border: 0;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.result {
+    margin-top: 12px;
+    white-space: pre-wrap;
+    color: #cbd5e1;
+}
+a { color: #93c5fd; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Offline AI Multi Tool Chatbot</h1>
+<p>Chat, PDF, HTML, voice, video, and image-generation integration starter.</p>
+
+<div class="grid">
+<div class="card">
+<h2>AI Chat</h2>
+<input id="model" value="llama3.1:8b">
+<textarea id="chatPrompt" rows="5" placeholder="Ask anything..."></textarea>
+<button onclick="chat()">Ask</button>
+<div id="chatResult" class="result"></div>
+</div>
+
+<div class="card">
+<h2>PDF / HTML</h2>
+<input id="docTitle" placeholder="Title">
+<textarea id="docContent" rows="6" placeholder="Content"></textarea>
+<button onclick="makeFile('pdf')">Make PDF</button>
+<button onclick="makeFile('html')">Make HTML</button>
+<div id="docResult" class="result"></div>
+</div>
+
+<div class="card">
+<h2>Voice</h2>
+<textarea id="voiceText" rows="6" placeholder="Text to voice..."></textarea>
+<button onclick="voice()">Generate Voice</button>
+<div id="voiceResult" class="result"></div>
+</div>
+
+<div class="card">
+<h2>Simple Video</h2>
+<input id="videoTitle" placeholder="Video title">
+<textarea id="videoScript" rows="6" placeholder="Video script..."></textarea>
+<button onclick="video()">Generate Video</button>
+<div id="videoResult" class="result"></div>
+</div>
+
+<div class="card">
+<h2>Photo Generation</h2>
+<textarea id="imagePrompt" rows="6" placeholder="Image prompt..."></textarea>
+<button onclick="image()">Generate Image Prompt File</button>
+<div id="imageResult" class="result"></div>
+</div>
+</div>
+</div>
+
+<script>
+async function post(url, data) {
+    const res = await fetch(url, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+    });
+    return await res.json();
+}
+
+async function chat() {
+    document.getElementById("chatResult").innerText = "Working...";
+    const data = await post("/api/chat", {
+        prompt: document.getElementById("chatPrompt").value,
+        model: document.getElementById("model").value
+    });
+    document.getElementById("chatResult").innerText = data.answer || data.error;
+}
+
+async function makeFile(type) {
+    document.getElementById("docResult").innerText = "Working...";
+    const data = await post("/api/" + type, {
+        title: document.getElementById("docTitle").value,
+        content: document.getElementById("docContent").value
+    });
+    document.getElementById("docResult").innerHTML = data.file ? `<a href="${data.file}" target="_blank">Open ${type.toUpperCase()}</a>` : data.error;
+}
+
+async function voice() {
+    document.getElementById("voiceResult").innerText = "Working...";
+    const data = await post("/api/voice", {text: document.getElementById("voiceText").value});
+    document.getElementById("voiceResult").innerHTML = data.file ? `<a href="${data.file}" target="_blank">Open Voice File</a>` : data.error;
+}
+
+async function video() {
+    document.getElementById("videoResult").innerText = "Working...";
+    const data = await post("/api/video", {
+        title: document.getElementById("videoTitle").value,
+        script: document.getElementById("videoScript").value
+    });
+    document.getElementById("videoResult").innerHTML = data.file ? `<a href="${data.file}" target="_blank">Open Video</a>` : data.error;
+}
+
+async function image() {
+    document.getElementById("imageResult").innerText = "Working...";
+    const data = await post("/api/image", {prompt: document.getElementById("imagePrompt").value});
+    document.getElementById("imageResult").innerHTML = data.file ? `<a href="${data.file}" target="_blank">Open Image Prompt File</a>` : data.error;
+}
+</script>
+</body>
+</html>
